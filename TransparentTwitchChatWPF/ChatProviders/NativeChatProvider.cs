@@ -36,9 +36,18 @@ public class NativeChatProvider : IChatProvider
     // --- Helper methods --------------------------
     private void SyncChannelSettings()
     {
+        if (App.Settings?.jChatSettings == null || App.Settings?.GeneralSettings == null)
+        {
+            // Settings failed to load — bail out gracefully or initialize defaults
+            throw new InvalidOperationException(
+                "App.Settings or its sub-settings are null. Settings may have failed to load from disk.");
+        }
+
         if (string.IsNullOrEmpty(App.Settings.jChatSettings.Channel))
         {
-            App.Settings.jChatSettings.Channel = !string.IsNullOrEmpty(App.Settings.GeneralSettings.Username) ? App.Settings.GeneralSettings.Username : "baffler";
+            App.Settings.jChatSettings.Channel = !string.IsNullOrEmpty(App.Settings.GeneralSettings.Username)
+                ? App.Settings.GeneralSettings.Username
+                : string.Empty;
         }
 
         App.Settings.SyncJChatSettings();

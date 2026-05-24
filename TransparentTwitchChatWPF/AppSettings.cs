@@ -46,6 +46,7 @@ public class AppSettings
             UserDataFolder = Path.Combine(AppContext.BaseDirectory, "settings");
             Tracker = new Tracker(new JsonFileStore(UserDataFolder));
             this.GeneralSettings = new GeneralSettings();
+            this.jChatSettings = new jChatConfig();
         }
         else
         {

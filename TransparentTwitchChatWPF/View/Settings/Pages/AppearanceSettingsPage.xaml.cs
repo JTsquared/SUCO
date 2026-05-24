@@ -1,4 +1,5 @@
-﻿using Microsoft.Web.WebView2.Core;
+﻿using Microsoft.VisualBasic.Logging;
+using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using System;
 using System.Collections.Generic;
@@ -110,20 +111,31 @@ public partial class AppearanceSettingsPage : UserControl
         {
             // Execute the JavaScript function and get the JSON string
             string jsonResult = await webView.CoreWebView2.ExecuteScriptAsync("getSettingsData()");
+
+            if (jsonResult is "null" || string.IsNullOrEmpty(jsonResult))
+            {
+                // TODO: log the error properly
+                //Log.Warning($"SaveValues: getSettingsData() unavailable. Result: {jsonResult}");
+                return;
+            }
+
             string unescapedJson = JsonSerializer.Deserialize<string>(jsonResult);
 
-            if (!string.IsNullOrEmpty(unescapedJson))
+            if (string.IsNullOrEmpty(unescapedJson))
             {
-                try
-                {
-                    App.Settings.UpdateJChatConfig(unescapedJson);
-                    App.Settings.SyncJChatSettings();
-                    //MessageBox.Show("Settings saved successfully!");
-                }
-                catch (JsonException ex)
-                {
-                    MessageBox.Show($"Error parsing settings: {ex.Message}");
-                }
+                //Log.Warning("SaveValues: Unescaped JSON is null or empty.");
+                return;
+            }
+
+            try
+            {
+                App.Settings.UpdateJChatConfig(unescapedJson);
+                App.Settings.SyncJChatSettings();
+                //MessageBox.Show("Settings saved successfully!");
+            }
+            catch (JsonException ex)
+            {
+                MessageBox.Show($"Error parsing settings: {ex.Message}");
             }
         }
     }

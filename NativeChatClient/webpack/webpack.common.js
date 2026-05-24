@@ -35,12 +35,14 @@ module.exports = {
       filename: "index.html",
       inject: true,
       hash: true,
+	  minify: false,
     }),
     new HtmlWebpackPlugin({
       template: "./src/v2/index.html",
       filename: "v2/index.html",
       inject: true,
       hash: true,
+	  minify: false,
     }),
     new CopyWebpackPlugin({
       patterns: [
