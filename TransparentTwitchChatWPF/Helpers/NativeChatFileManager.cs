@@ -64,18 +64,22 @@ public class NativeChatFileManager
         string installedVersion = GetInstalledVersion(overlayFolder);
         ValidationResult installedState = ValidateInstalledFiles(overlayFolder);
         string reason;
+        bool keepBackup;
 
         if (!installedState.IsValid)
         {
             reason = installedState.Message;
+            keepBackup = false;
         }
         else if (string.IsNullOrEmpty(installedVersion))
         {
             reason = "no installed version recorded";
+            keepBackup = false;
         }
         else if (IsNewerVersion(package.Manifest.Version, installedVersion))
         {
             reason = $"embedded version {package.Manifest.Version} > installed {installedVersion}";
+            keepBackup = true;
         }
         else
         {
@@ -85,7 +89,7 @@ public class NativeChatFileManager
         }
 
         _logger.LogInformation("Installing embedded NativeChat files: {Reason}.", reason);
-        InstallPackage(package, overlayFolder, reason);
+        InstallPackage(package, overlayFolder, reason, keepBackup);
         SaveInstalledVersion(package.Manifest.Version);
         return true;
     }
@@ -112,7 +116,7 @@ public class NativeChatFileManager
 
         string overlayFolder = OverlayPathHelper.GetNativeChatPath();
         _logger.LogInformation("Force-restoring NativeChat defaults to: {Path}", overlayFolder);
-        InstallPackage(package, overlayFolder, "force restore requested");
+        InstallPackage(package, overlayFolder, "force restore requested", keepBackup: false);
         SaveInstalledVersion(package.Manifest.Version);
     }
 
@@ -167,7 +171,11 @@ public class NativeChatFileManager
                 return false;
             }
 
-            InstallPackage(package, overlayFolder, $"external update {package.Manifest.Version}");
+            InstallPackage(
+                package,
+                overlayFolder,
+                $"external update {package.Manifest.Version}",
+                keepBackup: installedState.IsValid);
             SaveInstalledVersion(package.Manifest.Version);
 
             statusMessage = $"NativeChat {package.Manifest.Version} installed.";
@@ -229,7 +237,7 @@ public class NativeChatFileManager
     public void ExtractFromZipFile(string zipFilePath, string destinationFolder)
     {
         using var package = OpenZipFilePackage(zipFilePath);
-        InstallPackage(package, destinationFolder, "explicit zip extraction");
+        InstallPackage(package, destinationFolder, "explicit zip extraction", keepBackup: false);
     }
 
     private NativeChatPackage? OpenEmbeddedPackage()
@@ -405,7 +413,11 @@ public class NativeChatFileManager
         }
     }
 
-    private void InstallPackage(NativeChatPackage package, string destinationFolder, string reason)
+    private void InstallPackage(
+        NativeChatPackage package,
+        string destinationFolder,
+        string reason,
+        bool keepBackup)
     {
         string? parentFolder = Path.GetDirectoryName(destinationFolder);
         if (string.IsNullOrEmpty(parentFolder))
@@ -430,7 +442,7 @@ public class NativeChatFileManager
             if (!ValidateFolderAgainstManifest(tempFolder, package.Manifest, out string validationError))
                 throw new InvalidDataException($"Staged NativeChat package failed validation: {validationError}");
 
-            ActivateVerifiedFolder(tempFolder, destinationFolder, package.Manifest);
+            ActivateVerifiedFolder(tempFolder, destinationFolder, package.Manifest, keepBackup);
 
             _logger.LogInformation(
                 "Installed NativeChat {Version} to: {Path}",
@@ -471,7 +483,8 @@ public class NativeChatFileManager
     private void ActivateVerifiedFolder(
         string stagedFolder,
         string destinationFolder,
-        NativeChatManifest manifest)
+        NativeChatManifest manifest,
+        bool keepBackup)
     {
         string backupFolder = destinationFolder + ".backup";
         bool movedExistingToBackup = false;
@@ -487,6 +500,9 @@ public class NativeChatFileManager
             }
 
             Directory.Move(stagedFolder, destinationFolder);
+
+            if (!keepBackup)
+                DeleteDirectoryIfExists(backupFolder, logFailures: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

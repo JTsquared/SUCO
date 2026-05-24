@@ -71,7 +71,44 @@ public class WebViewConfigurator
     private async Task InjectCssAsync(CoreWebView2 coreWebView2, string css)
     {
         if (string.IsNullOrEmpty(css)) return;
-        string script = $"const style = document.createElement('style'); style.textContent = `{css}`; document.head.appendChild(style);";
+        string cssJson = JsonSerializer.Serialize(css);
+        string script = $$"""
+        (() => {
+            const css = {{cssJson}};
+            const styleId = 'ttco-injected-css';
+
+            function ensureStyle() {
+                const head = document.head || document.documentElement;
+                if (!head) return;
+
+                let style = document.getElementById(styleId);
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = styleId;
+                    style.type = 'text/css';
+                }
+
+                if (style.textContent !== css) {
+                    style.textContent = css;
+                }
+
+                if (style.parentNode !== head || head.lastElementChild !== style) {
+                    head.appendChild(style);
+                }
+            }
+
+            ensureStyle();
+
+            if (window.__ttcoCssObserver) {
+                window.__ttcoCssObserver.disconnect();
+            }
+
+            if (document.head) {
+                window.__ttcoCssObserver = new MutationObserver(ensureStyle);
+                window.__ttcoCssObserver.observe(document.head, { childList: true });
+            }
+        })();
+        """;
         await coreWebView2.ExecuteScriptAsync(script);
     }
 

@@ -55,16 +55,7 @@ public partial class ChatSettingsPage : UserControl
         this.comboTheme.SelectedIndex = App.Settings.GeneralSettings.ThemeIndex;
 
         // Twitch Popout Chat settings
-        if (App.Settings.GeneralSettings.UseDefaultTwitchPopoutCSS)
-        {
-            this.tbPopoutCSS.Text = CustomCSS_Defaults.TwitchPopoutChat;
-            this.cbUseDefaultPopoutCSS.IsChecked = true;
-        }
-        else
-        {
-            this.tbPopoutCSS.Text = App.Settings.GeneralSettings.TwitchPopoutCSS;
-            this.cbUseDefaultPopoutCSS.IsChecked = false;
-        }
+        LoadTwitchPopoutCssSettings();
 
         this.cbBetterTtv.IsChecked = App.Settings.GeneralSettings.BetterTtv;
         this.cbBetterTtv_7tv.IsChecked = App.Settings.GeneralSettings.BetterTtv_7tv;
@@ -335,10 +326,7 @@ public partial class ChatSettingsPage : UserControl
                 this.twitchPopoutChat.Visibility = Visibility.Visible;
                 this.jChatGrid.Visibility = Visibility.Hidden;
 
-                if (string.IsNullOrEmpty(App.Settings.GeneralSettings.TwitchPopoutCSS))
-                    this.tbPopoutCSS.Text = CustomCSS_Defaults.TwitchPopoutChat;
-                else
-                    this.tbPopoutCSS.Text = App.Settings.GeneralSettings.TwitchPopoutCSS;
+                LoadTwitchPopoutCssSettings();
                 break;
             case ChatTypes.KapChat:
                 this.kapChatGrid.Visibility = Visibility.Visible;
@@ -492,7 +480,19 @@ public partial class ChatSettingsPage : UserControl
 
     private void cbUseDefaultPopoutCSS_Unchecked(object sender, RoutedEventArgs e)
     {
-        tbPopoutCSS.Text = App.Settings.GeneralSettings.TwitchPopoutCSS;
+        tbPopoutCSS.Text = string.IsNullOrEmpty(App.Settings.GeneralSettings.TwitchPopoutCSS)
+            ? CustomCSS_Defaults.TwitchPopoutChat
+            : App.Settings.GeneralSettings.TwitchPopoutCSS;
         tbPopoutCSS.IsReadOnly = false;
+    }
+
+    private void LoadTwitchPopoutCssSettings()
+    {
+        bool useDefaultCss = App.Settings.GeneralSettings.UseDefaultTwitchPopoutCSS;
+        cbUseDefaultPopoutCSS.IsChecked = useDefaultCss;
+        tbPopoutCSS.Text = useDefaultCss || string.IsNullOrEmpty(App.Settings.GeneralSettings.TwitchPopoutCSS)
+            ? CustomCSS_Defaults.TwitchPopoutChat
+            : App.Settings.GeneralSettings.TwitchPopoutCSS;
+        tbPopoutCSS.IsReadOnly = useDefaultCss;
     }
 }

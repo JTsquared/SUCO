@@ -100,7 +100,10 @@ public class TwitchPopoutProvider : IChatProvider
 
     public string GetCssToInject()
     {
-        return "";
+        if (App.Settings.GeneralSettings.UseDefaultTwitchPopoutCSS)
+            return CustomCSS_Defaults.TwitchPopoutChat;
+
+        return App.Settings.GeneralSettings.TwitchPopoutCSS ?? string.Empty;
     }
 
     public string GetJavascriptToExecute()
