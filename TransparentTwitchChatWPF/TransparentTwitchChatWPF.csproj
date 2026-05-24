@@ -35,7 +35,6 @@
 		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
-		<PackageReference Include="SharpCompress" Version="0.40.0" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 		<PackageReference Include="System.Text.Json" Version="9.0.6" />
@@ -122,9 +121,7 @@
 		<MakeDir Directories="$(ProjectDir)Resources" />
 
 		<!-- Step 2: Refuse to build without a manifest-backed NativeChat dist. -->
-		<Error
-			Condition="!Exists('$(ProjectDir)..\NativeChatClient\dist\nativechat-manifest.json')"
-			Text="NativeChatClient dist is missing nativechat-manifest.json. Run 'npm.cmd run build' in NativeChatClient before building the WPF app." />
+		<Error Condition="!Exists('$(ProjectDir)..\NativeChatClient\dist\nativechat-manifest.json')" Text="NativeChatClient dist is missing nativechat-manifest.json. Run 'npm.cmd run build' in NativeChatClient before building the WPF app." />
 
 		<!-- Step 3: Package the dist output into native-chat.zip.
 		     This zip is embedded in the exe as a resource and extracted at runtime
