@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using TransparentTwitchChatWPF.Blaze;
 using TransparentTwitchChatWPF.Utils;
 using Path = System.IO.Path;
 
@@ -106,8 +107,7 @@ public partial class ChatSettingsPage : UserControl
             {
                 this.blazeChatGrid.Visibility = Visibility.Visible;
                 this.tbBlazeChannel.Text = App.Settings.GeneralSettings.BlazeChannel;
-                this.tbBlazeClientId.Text = App.Settings.GeneralSettings.BlazeClientId;
-                this.pbBlazeAccessToken.Password = App.Settings.GeneralSettings.BlazeAccessToken;
+                UpdateBlazeSecretStatus();
             }
         }
     }
@@ -183,8 +183,6 @@ public partial class ChatSettingsPage : UserControl
             else if (chatType == ChatTypes.BlazeChat)
             {
                 App.Settings.GeneralSettings.BlazeChannel = this.tbBlazeChannel.Text;
-                App.Settings.GeneralSettings.BlazeClientId = this.tbBlazeClientId.Text;
-                App.Settings.GeneralSettings.BlazeAccessToken = this.pbBlazeAccessToken.Password;
             }
         }
     }
@@ -341,8 +339,7 @@ public partial class ChatSettingsPage : UserControl
             case ChatTypes.BlazeChat:
                 this.blazeChatGrid.Visibility = Visibility.Visible;
                 this.tbBlazeChannel.Text = App.Settings.GeneralSettings.BlazeChannel;
-                this.tbBlazeClientId.Text = App.Settings.GeneralSettings.BlazeClientId;
-                this.pbBlazeAccessToken.Password = App.Settings.GeneralSettings.BlazeAccessToken;
+                UpdateBlazeSecretStatus();
                 break;
         }
     }
@@ -492,5 +489,57 @@ public partial class ChatSettingsPage : UserControl
             ? CustomCSS_Defaults.TwitchPopoutChat
             : App.Settings.GeneralSettings.TwitchPopoutCSS;
         tbPopoutCSS.IsReadOnly = useDefaultCss;
+    }
+
+    // --- Blaze credential management ---
+
+    private void UpdateBlazeSecretStatus()
+    {
+        if (BlazeCredentialManager.HasSecret)
+        {
+            lblBlazeSecretStatus.Content = "Client Secret is configured";
+            lblBlazeSecretStatus.Foreground = Brushes.Green;
+        }
+        else
+        {
+            lblBlazeSecretStatus.Content = "Client Secret not configured";
+            lblBlazeSecretStatus.Foreground = Brushes.OrangeRed;
+        }
+    }
+
+    private void btBlazeConfigureSecret_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Input_BlazeSecret();
+        dialog.Owner = Window.GetWindow(this);
+
+        if (dialog.ShowDialog() == true)
+        {
+            string secret = dialog.Secret;
+            if (!string.IsNullOrWhiteSpace(secret))
+            {
+                BlazeCredentialManager.StoreSecret(secret);
+                UpdateBlazeSecretStatus();
+                MessageBox.Show(
+                    "Client Secret has been encrypted and stored locally.",
+                    "Blaze Credentials",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+    }
+
+    private void btBlazeClearSecret_Click(object sender, RoutedEventArgs e)
+    {
+        var result = MessageBox.Show(
+            "Remove the stored Blaze Client Secret from this machine?",
+            "Clear Blaze Credentials",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            BlazeCredentialManager.ClearSecret();
+            UpdateBlazeSecretStatus();
+        }
     }
 }

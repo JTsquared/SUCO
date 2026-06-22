@@ -253,8 +253,6 @@ public class GeneralSettings
 
     // Blaze Stream settings
     public string BlazeChannel { get; set; } = string.Empty;
-    public string BlazeClientId { get; set; } = string.Empty;
-    public string BlazeAccessToken { get; set; } = string.Empty;
 }
 
 public class jChatConfig

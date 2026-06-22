@@ -305,3 +305,9 @@ tools/
 # NativeChat Resources
 TransparentTwitchChatWPF/Resources/native-chat.zip
 NativeChatClient/dist/
+
+# Blaze credentials (DPAPI-encrypted, stored in %AppData% at runtime)
+client.dat
+token.dat
+.env
+.env.*
