@@ -12,8 +12,7 @@ namespace TransparentTwitchChatWPF.Blaze;
 /// </summary>
 internal class BlazeTokenService
 {
-    // TODO: Update this URL once the proxy is deployed to your Linux VM.
-    private const string TokenProxyUrl = "https://your-server.com/token";
+    private const string TokenProxyUrl = "https://blazegames.store/blaze-token/token";
 
     private static readonly HttpClient HttpClient = new();
 
