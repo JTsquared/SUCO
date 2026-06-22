@@ -136,25 +136,36 @@
         if (!config.clientId || !config.accessToken) return null;
 
         try {
-            const response = await fetch(
-                API_BASE + '/channels?username=' + encodeURIComponent(channelName),
-                {
-                    headers: {
-                        'Authorization': 'Bearer ' + config.accessToken,
-                        'client-id': config.clientId,
-                        'Accept': 'application/json'
-                    }
-                }
-            );
+            // Blaze API uses slug[] parameter to look up channels by name
+            const url = API_BASE + '/channels?slug[]=' + encodeURIComponent(channelName);
+            console.log('[BlazeChat] Resolving channel via:', url);
 
-            if (!response.ok) return null;
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': 'Bearer ' + config.accessToken,
+                    'client-id': config.clientId,
+                    'Accept': 'application/json'
+                }
+            });
+
+            console.log('[BlazeChat] Channel lookup response:', response.status);
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('[BlazeChat] Channel lookup failed:', response.status, errText);
+                return null;
+            }
 
             const data = await response.json();
+            console.log('[BlazeChat] Channel lookup result:', JSON.stringify(data).substring(0, 300));
+
+            // Response could be { channels: [...] } or just an array
+            const channels = data.channels || data;
+            if (Array.isArray(channels) && channels.length > 0) return channels[0].id;
             if (data && data.id) return data.id;
-            if (Array.isArray(data) && data.length > 0) return data[0].id;
             return null;
         } catch (err) {
-            console.error('Failed to resolve Blaze channel:', err);
+            console.error('[BlazeChat] Failed to resolve channel:', err);
             return null;
         }
     }
