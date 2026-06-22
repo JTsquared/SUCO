@@ -152,21 +152,10 @@
                 <ui:SimpleStackPanel DockPanel.Dock="Top" Margin="10" Spacing="8">
                     <Label Content="Blaze Stream Chat" HorizontalAlignment="Left" FontWeight="Bold" FontSize="16"/>
                     <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="Gray"
-                               Text="Display real-time chat from a Blaze Stream channel." />
+                               Text="Display real-time chat from a Blaze Stream channel. Just enter your channel name and hit Save." />
                     <Label Content="Channel Name" HorizontalAlignment="Left" FontWeight="Bold"/>
                     <TextBox Name="tbBlazeChannel" HorizontalAlignment="Left" Height="23" Width="240"
                              TextWrapping="NoWrap" ui:ControlHelper.PlaceholderText="channel username" />
-                    <Rectangle Height="1" Fill="Gray" Margin="0,8,0,4" />
-                    <Label Content="API Credentials" HorizontalAlignment="Left" FontWeight="Bold"/>
-                    <Label Name="lblBlazeSecretStatus" Content="..." Foreground="Gray" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Name="btBlazeConfigureSecret" Content="Configure Secret"
-                                Width="140" Click="btBlazeConfigureSecret_Click" />
-                        <Button Name="btBlazeClearSecret" Content="Clear Secret"
-                                Width="110" Click="btBlazeClearSecret_Click" />
-                    </StackPanel>
-                    <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,8,0,0"
-                               Text="The Client Secret is encrypted and stored locally on this machine. It is never saved to the project or shared." />
                 </ui:SimpleStackPanel>
             </DockPanel>
         </Grid>

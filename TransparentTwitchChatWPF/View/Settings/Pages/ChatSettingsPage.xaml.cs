@@ -4,7 +4,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using TransparentTwitchChatWPF.Blaze;
 using TransparentTwitchChatWPF.Utils;
 using Path = System.IO.Path;
 
@@ -107,7 +106,6 @@ public partial class ChatSettingsPage : UserControl
             {
                 this.blazeChatGrid.Visibility = Visibility.Visible;
                 this.tbBlazeChannel.Text = App.Settings.GeneralSettings.BlazeChannel;
-                UpdateBlazeSecretStatus();
             }
         }
     }
@@ -339,7 +337,6 @@ public partial class ChatSettingsPage : UserControl
             case ChatTypes.BlazeChat:
                 this.blazeChatGrid.Visibility = Visibility.Visible;
                 this.tbBlazeChannel.Text = App.Settings.GeneralSettings.BlazeChannel;
-                UpdateBlazeSecretStatus();
                 break;
         }
     }
@@ -491,55 +488,4 @@ public partial class ChatSettingsPage : UserControl
         tbPopoutCSS.IsReadOnly = useDefaultCss;
     }
 
-    // --- Blaze credential management ---
-
-    private void UpdateBlazeSecretStatus()
-    {
-        if (BlazeCredentialManager.HasSecret)
-        {
-            lblBlazeSecretStatus.Content = "Client Secret is configured";
-            lblBlazeSecretStatus.Foreground = Brushes.Green;
-        }
-        else
-        {
-            lblBlazeSecretStatus.Content = "Client Secret not configured";
-            lblBlazeSecretStatus.Foreground = Brushes.OrangeRed;
-        }
-    }
-
-    private void btBlazeConfigureSecret_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new Input_BlazeSecret();
-        dialog.Owner = Window.GetWindow(this);
-
-        if (dialog.ShowDialog() == true)
-        {
-            string secret = dialog.Secret;
-            if (!string.IsNullOrWhiteSpace(secret))
-            {
-                BlazeCredentialManager.StoreSecret(secret);
-                UpdateBlazeSecretStatus();
-                MessageBox.Show(
-                    "Client Secret has been encrypted and stored locally.",
-                    "Blaze Credentials",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-        }
-    }
-
-    private void btBlazeClearSecret_Click(object sender, RoutedEventArgs e)
-    {
-        var result = MessageBox.Show(
-            "Remove the stored Blaze Client Secret from this machine?",
-            "Clear Blaze Credentials",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-
-        if (result == MessageBoxResult.Yes)
-        {
-            BlazeCredentialManager.ClearSecret();
-            UpdateBlazeSecretStatus();
-        }
-    }
 }
