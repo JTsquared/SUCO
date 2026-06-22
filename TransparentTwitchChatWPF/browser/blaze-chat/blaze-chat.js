@@ -267,15 +267,24 @@
 
     console.log('[BlazeChat] Script loaded, host bridge:', blazeChatHost ? 'available' : 'unavailable');
 
+    var isConfiguring = false;
+
     if (blazeChatHost) {
-        blazeChatHost.addEventListener('message', async function (event) {
+        blazeChatHost.addEventListener('message', function (event) {
             var message = event.data;
-            console.log('[BlazeChat] Received config from C#');
+            console.log('[BlazeChat] Received message type:', message.type);
 
             if (message.type !== 'blazeConfig') {
                 console.warn('[BlazeChat] Unknown message type:', message.type);
                 return;
             }
+
+            // Guard against duplicate config processing
+            if (isConfiguring) {
+                console.log('[BlazeChat] Already configuring, skipping duplicate');
+                return;
+            }
+            isConfiguring = true;
 
             config.clientId = message.payload.clientId || '';
             config.accessToken = message.payload.accessToken || '';
@@ -285,34 +294,49 @@
                 'token:', config.accessToken ? 'present' : 'MISSING');
 
             var channelInput = message.payload.channel || '';
+            console.log('[BlazeChat] Channel input:', channelInput);
 
-            // If it looks like a UUID, use directly; otherwise resolve slug to UUID
-            if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(channelInput)) {
-                config.channelId = channelInput;
-                console.log('[BlazeChat] Channel is UUID:', config.channelId);
-            } else if (channelInput) {
-                showStatus('Resolving channel: ' + channelInput + '...', 0);
-                console.log('[BlazeChat] Resolving slug:', channelInput);
-                var resolved = await resolveChannelId(channelInput);
-                if (resolved) {
-                    config.channelId = resolved;
-                    console.log('[BlazeChat] Resolved to:', config.channelId);
-                } else {
-                    showStatus('Could not find channel: ' + channelInput, 5000);
-                    console.error('[BlazeChat] Channel resolution failed for:', channelInput);
-                    return;
+            // Wrap async work in a function so errors are visible
+            (async function () {
+                try {
+                    // If it looks like a UUID, use directly; otherwise resolve slug to UUID
+                    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(channelInput)) {
+                        config.channelId = channelInput;
+                        console.log('[BlazeChat] Channel is UUID:', config.channelId);
+                    } else if (channelInput) {
+                        showStatus('Resolving channel: ' + channelInput + '...', 0);
+                        console.log('[BlazeChat] Resolving slug:', channelInput);
+                        var resolved = await resolveChannelId(channelInput);
+                        if (resolved) {
+                            config.channelId = resolved;
+                            console.log('[BlazeChat] Resolved to UUID:', config.channelId);
+                        } else {
+                            showStatus('Could not find channel: ' + channelInput, 5000);
+                            console.error('[BlazeChat] Channel resolution failed for:', channelInput);
+                            isConfiguring = false;
+                            return;
+                        }
+                    } else {
+                        console.error('[BlazeChat] No channel provided');
+                        isConfiguring = false;
+                        return;
+                    }
+
+                    if (config.channelId && config.accessToken) {
+                        console.log('[BlazeChat] All ready, connecting Socket.IO...');
+                        connectSocket();
+                    } else {
+                        console.error('[BlazeChat] Missing -',
+                            !config.channelId ? 'channelId' : '',
+                            !config.accessToken ? 'accessToken' : '');
+                        showStatus('Missing channel or credentials', 5000);
+                    }
+                } catch (err) {
+                    console.error('[BlazeChat] Configuration error:', err);
+                    showStatus('Error: ' + err.message, 5000);
                 }
-            }
-
-            if (config.channelId && config.accessToken) {
-                console.log('[BlazeChat] All ready, connecting Socket.IO...');
-                connectSocket();
-            } else {
-                console.error('[BlazeChat] Missing -',
-                    !config.channelId ? 'channelId' : '',
-                    !config.accessToken ? 'accessToken' : '');
-                showStatus('Missing channel or credentials', 5000);
-            }
+                isConfiguring = false;
+            })();
         });
 
         // Notify C# host that we're ready to receive config
