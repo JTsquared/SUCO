@@ -14,8 +14,7 @@
         channelId: '',
         clientId: '',
         accessToken: '',
-        fadeTimeout: 0,
-        textSize: 18
+        fadeTimeout: 0
     };
 
     let socket = null;
@@ -299,17 +298,8 @@
             config.fadeTimeout = message.payload.fadeTimeout || 0;
             config.textSize = message.payload.textSize || 18;
 
-            config.showBackground = message.payload.showBackground || false;
-
-            // Apply text size
+            // Apply text size to chat container
             document.getElementById('chat_container').style.fontSize = config.textSize + 'px';
-
-            // Apply background to entire overlay
-            if (config.showBackground) {
-                document.body.classList.add('with-background');
-            } else {
-                document.body.classList.remove('with-background');
-            }
 
             console.log('[BlazeChat] clientId:', config.clientId ? 'present' : 'MISSING',
                 'token:', config.accessToken ? 'present' : 'MISSING');

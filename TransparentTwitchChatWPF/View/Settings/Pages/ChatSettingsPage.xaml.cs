@@ -108,7 +108,6 @@ public partial class ChatSettingsPage : UserControl
                 this.tbBlazeChannel.Text = App.Settings.GeneralSettings.BlazeChannel;
                 this.slBlazeTextSize.Value = App.Settings.GeneralSettings.BlazeTextSize;
                 this.lblBlazeTextSize.Text = App.Settings.GeneralSettings.BlazeTextSize + "px";
-                this.cbBlazeChatBackground.IsChecked = App.Settings.GeneralSettings.BlazeChatBackground;
             }
         }
     }
@@ -185,7 +184,6 @@ public partial class ChatSettingsPage : UserControl
             {
                 App.Settings.GeneralSettings.BlazeChannel = this.tbBlazeChannel.Text;
                 App.Settings.GeneralSettings.BlazeTextSize = (int)this.slBlazeTextSize.Value;
-                App.Settings.GeneralSettings.BlazeChatBackground = this.cbBlazeChatBackground.IsChecked ?? false;
             }
         }
     }
@@ -344,7 +342,6 @@ public partial class ChatSettingsPage : UserControl
                 this.tbBlazeChannel.Text = App.Settings.GeneralSettings.BlazeChannel;
                 this.slBlazeTextSize.Value = App.Settings.GeneralSettings.BlazeTextSize;
                 this.lblBlazeTextSize.Text = App.Settings.GeneralSettings.BlazeTextSize + "px";
-                this.cbBlazeChatBackground.IsChecked = App.Settings.GeneralSettings.BlazeChatBackground;
                 break;
         }
     }
