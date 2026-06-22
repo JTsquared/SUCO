@@ -35,9 +35,9 @@
                 Text="For information on how to do that please check the wiki at:" />
             
             <Label Margin="0,0,0,0">
-                <Hyperlink NavigateUri = "https://github.com/baffler/Transparent-Twitch-Chat-Overlay/wiki"
+                <Hyperlink NavigateUri = "https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay/wiki"
                        Hyperlink.RequestNavigate = "Hyperlink_RequestNavigate" >
-                    <TextBlock Text="https://github.com/baffler/Transparent-Twitch-Chat-Overlay/wiki" />
+                    <TextBlock Text="https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay/wiki" />
                 </Hyperlink>
             </Label>
         </StackPanel>

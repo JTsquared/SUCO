@@ -8,7 +8,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">GPL-3.0-only</license>
     <!-- <icon>icon.png</icon> -->
-    <projectUrl>https://github.com/baffler/Transparent-Twitch-Chat-Overlay</projectUrl>
+    <projectUrl>https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay</projectUrl>
     <description>Application for Windows that will display Twitch chat on top of a windowed or borderless windowed game.</description>
     <releaseNotes>Latest version</releaseNotes>
     <copyright>2024</copyright>

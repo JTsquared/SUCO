@@ -300,7 +300,7 @@ public class TwitchAuthService : ITwitchAuthService
         </p>
         <hr>
         <div class=""footer"">
-            <a href=""https://github.com/baffler/Transparent-Twitch-Chat-Overlay"">github repository</a>
+            <a href=""https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay"">github repository</a>
         </div>
     </div>
 </body>

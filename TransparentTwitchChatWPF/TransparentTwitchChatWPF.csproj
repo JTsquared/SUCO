@@ -6,7 +6,7 @@
 		<OutputType>WinExe</OutputType>
 		<StartupObject>TransparentTwitchChatWPF.App</StartupObject>
 		<UseWPF>true</UseWPF>
-		<ApplicationIcon>twitch_chat2.ico</ApplicationIcon>
+		<ApplicationIcon>suco.ico</ApplicationIcon>
 		<!-- This ensures platform-specific assets are handled correctly -->
 		<ImplicitUsings>enable</ImplicitUsings>
 
@@ -68,6 +68,8 @@
 		<Resource Include="icons\twitch_chat.ico" />
 		<None Remove="icons\twitch_chat2.ico" />
 		<Resource Include="icons\twitch_chat2.ico" />
+		<None Remove="suco.ico" />
+		<Resource Include="suco.ico" />
 	</ItemGroup>
 
 	<!-- content files that need to be copied to the output directory -->
@@ -87,7 +89,7 @@
 		<Content Include="browser\blaze-chat\**">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="twitch_chat2.ico" />
+		<Content Include="suco.ico" />
 		<ApplicationDefinition Remove="App.xaml" />
 	</ItemGroup>
 

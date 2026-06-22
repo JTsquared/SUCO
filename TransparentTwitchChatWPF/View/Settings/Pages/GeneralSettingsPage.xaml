@@ -51,7 +51,7 @@
                     HorizontalAlignment="Left" 
                     VerticalAlignment="Top"
                     Margin="35,0">
-                    <Hyperlink NavigateUri = "https://github.com/baffler/Transparent-Twitch-Chat-Overlay/wiki/Using-the-Tray-Icon"
+                    <Hyperlink NavigateUri = "https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay/wiki/Using-the-Tray-Icon"
                    Hyperlink.RequestNavigate = "Hyperlink_RequestNavigate" >
                         <TextBlock Text="Click this link to find out how to use the Tray Icon" />
                     </Hyperlink>

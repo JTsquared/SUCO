@@ -857,7 +857,7 @@ public partial class MainWindow : Window, BrowserWindow
 
     private void MenuItem_VisitWebsite(object sender, RoutedEventArgs e)
     {
-        ShellHelper.OpenUrl("https://github.com/baffler/Transparent-Twitch-Chat-Overlay/releases/latest");
+        ShellHelper.OpenUrl("https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay/releases/latest");
         e.Handled = true;
     }
 
@@ -1058,7 +1058,7 @@ public partial class MainWindow : Window, BrowserWindow
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        this.Title = $"Chat Overlay for {config.Channel}";
+                        this.Title = $"SUCO - {config.Channel}";
                     });
                 }
             }
@@ -1351,7 +1351,7 @@ public partial class MainWindow : Window, BrowserWindow
 #else
         _logger.LogInformation("Checking for updates...");
 
-        var mgr = new UpdateManager(new GithubSource("https://github.com/baffler/Transparent-Twitch-Chat-Overlay", null, false));
+        var mgr = new UpdateManager(new GithubSource("https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay", null, false));
 
         try
         {

@@ -31,7 +31,7 @@
                         <ui:SymbolIcon Foreground="{ui:ThemeResource SystemControlPageTextBaseMediumBrush}" Symbol="Comment"/>
                     </Viewbox>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Twitch Chat Overlay" Style="{StaticResource TitleTextBlockStyle}" />
+                        <TextBlock Text="SUCO - Stream Unified Chat Overlay" Style="{StaticResource TitleTextBlockStyle}" />
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Version " Foreground="{ui:ThemeResource SystemControlPageTextBaseMediumBrush}"/>
                             <TextBlock Text="{x:Static ttc:AppInfo.Version}" Foreground="{ui:ThemeResource SystemControlPageTextBaseMediumBrush}"/>
@@ -41,27 +41,27 @@
                     </StackPanel>
                 </ui:SimpleStackPanel>
 
-                <TextBlock Text="Created by Baffler" HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,0,0,12"/>
+                <TextBlock Text="Based on Transparent Twitch Chat Overlay by Baffler" HorizontalAlignment="Center" Foreground="{ui:ThemeResource SystemControlPageTextBaseMediumBrush}" Margin="0,0,0,12"/>
 
                 <Separator />
 
                 <TextBlock Text="Resources" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,8,0,0"/>
 
-                <ui:HyperlinkButton NavigateUri="https://github.com/baffler/Transparent-Twitch-Chat-Overlay">
+                <ui:HyperlinkButton NavigateUri="https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay">
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="8">
                         <ui:SymbolIcon Symbol="Link"/>
                         <TextBlock Text="GitHub Repository"/>
                     </ui:SimpleStackPanel>
                 </ui:HyperlinkButton>
 
-                <ui:HyperlinkButton NavigateUri="https://github.com/baffler/Transparent-Twitch-Chat-Overlay/issues">
+                <ui:HyperlinkButton NavigateUri="https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay/issues">
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="8">
                         <ui:SymbolIcon Symbol="Repair" />
                         <TextBlock Text="Report an Issue or Request a Feature"/>
                     </ui:SimpleStackPanel>
                 </ui:HyperlinkButton>
 
-                <ui:HyperlinkButton NavigateUri="https://github.com/baffler/Transparent-Twitch-Chat-Overlay/wiki">
+                <ui:HyperlinkButton NavigateUri="https://github.com/JTsquared/Transparent-Twitch-Chat-Overlay/wiki">
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="8">
                         <ui:SymbolIcon Symbol="Help"/>
                         <TextBlock Text="Wiki &amp; FAQ"/>
