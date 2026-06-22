@@ -58,18 +58,25 @@
         return html;
     }
 
-    function addChatMessage(payload) {
+    function renderPlatformBadge(platform) {
+        var p = (platform || 'blaze').toLowerCase();
+        return '<span class="platform-badge platform-' + p + '">' + p.toUpperCase() + '</span>';
+    }
+
+    function addChatMessage(payload, platform) {
         var container = document.getElementById('chat_container');
         var sender = payload.sender || {};
         var displayName = sender.displayName || sender.username || 'Anonymous';
         var color = getUserColor(displayName);
         var badges = renderBadges(sender.roles);
         var text = escapeHtml(payload.message || '');
+        var platformBadge = renderPlatformBadge(platform || 'blaze');
 
         var line = document.createElement('div');
         line.className = 'chat-line';
         line.dataset.messageId = payload.messageId || '';
         line.innerHTML =
+            platformBadge +
             badges +
             '<span class="username" style="color:' + color + '">' + escapeHtml(displayName) + '</span>' +
             '<span class="separator">: </span>' +
