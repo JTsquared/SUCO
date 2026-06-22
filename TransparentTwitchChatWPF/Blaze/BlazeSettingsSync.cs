@@ -9,6 +9,7 @@ namespace TransparentTwitchChatWPF.Blaze;
 internal class BlazeSettingsSync
 {
     private const string SettingsBaseUrl = "https://blazegames.store/suco/api/settings/";
+    private const string ClientApiKey = "80654d8b13979a4a52f0abded26f4adc646233a567118dbe";
     private static readonly HttpClient HttpClient = new();
 
     public async Task<BlazeOverlaySettings?> LoadFromServerAsync(string channel)
@@ -37,8 +38,12 @@ internal class BlazeSettingsSync
         try
         {
             var json = JsonSerializer.Serialize(settings);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await HttpClient.PostAsync(SettingsBaseUrl + Uri.EscapeDataString(channel), content);
+            var request = new HttpRequestMessage(HttpMethod.Post, SettingsBaseUrl + Uri.EscapeDataString(channel))
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+            request.Headers.Add("x-api-key", ClientApiKey);
+            var response = await HttpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
             {
