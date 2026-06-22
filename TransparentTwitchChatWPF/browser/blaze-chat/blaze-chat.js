@@ -275,15 +275,21 @@
 
     // --- C# bridge communication ---
 
+    console.log('[BlazeChat] Script loaded, host bridge:', blazeChatHost ? 'available' : 'unavailable');
+
     if (blazeChatHost) {
         blazeChatHost.addEventListener('message', async function (event) {
             const message = event.data;
+            console.log('[BlazeChat] Received message from C#:', JSON.stringify(message).substring(0, 200));
 
             switch (message.type) {
                 case 'blazeConfig':
                     config.clientId = message.payload.clientId || '';
                     config.accessToken = message.payload.accessToken || '';
                     config.fadeTimeout = message.payload.fadeTimeout || 0;
+
+                    console.log('[BlazeChat] Config received - clientId:', config.clientId ? 'present' : 'MISSING',
+                        'token:', config.accessToken ? 'present' : 'MISSING');
 
                     var channelInput = message.payload.channel || '';
 
@@ -301,9 +307,13 @@
                         }
                     }
 
+                    console.log('[BlazeChat] Channel resolved:', config.channelId || 'NONE');
+
                     if (config.channelId && config.accessToken) {
+                        console.log('[BlazeChat] Starting Socket.IO connection...');
                         connectSocket();
                     } else {
+                        console.error('[BlazeChat] Missing -', !config.channelId ? 'channelId' : '', !config.accessToken ? 'accessToken' : '');
                         showStatus('Missing channel or credentials', 5000);
                     }
                     break;
