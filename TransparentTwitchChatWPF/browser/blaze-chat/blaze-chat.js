@@ -1,5 +1,6 @@
 // Blaze Chat Overlay Client
 // Connects to Blaze Stream EventSub via Socket.IO for real-time chat messages.
+// Modeled after the working BlazeEventSub.js from blaze_games.
 
 (function () {
     'use strict';
@@ -27,12 +28,8 @@
         el.textContent = text;
         el.classList.add('visible');
         if (duration > 0) {
-            setTimeout(() => el.classList.remove('visible'), duration);
+            setTimeout(function () { el.classList.remove('visible'); }, duration);
         }
-    }
-
-    function hideStatus() {
-        document.getElementById('status_text').classList.remove('visible');
     }
 
     // --- Chat rendering ---
@@ -44,46 +41,34 @@
     }
 
     function getUserColor(username) {
-        let hash = 0;
-        for (let i = 0; i < username.length; i++) {
+        var hash = 0;
+        for (var i = 0; i < username.length; i++) {
             hash = username.charCodeAt(i) + ((hash << 5) - hash);
         }
-        const hue = Math.abs(hash) % 360;
-        return 'hsl(' + hue + ', 70%, 65%)';
+        return 'hsl(' + (Math.abs(hash) % 360) + ', 70%, 65%)';
     }
 
     function renderBadges(roles) {
-        let html = '';
+        var html = '';
         if (!roles || !Array.isArray(roles)) return html;
-
-        if (roles.includes('moderator')) {
-            html += '<span class="badge badge-mod" title="Moderator">M</span>';
-        }
-        if (roles.includes('vip')) {
-            html += '<span class="badge badge-vip" title="VIP">V</span>';
-        }
-        if (roles.includes('og')) {
-            html += '<span class="badge badge-og" title="OG">OG</span>';
-        }
-        if (roles.includes('subscriber')) {
-            html += '<span class="badge badge-sub" title="Subscriber">S</span>';
-        }
+        if (roles.includes('moderator')) html += '<span class="badge badge-mod" title="Moderator">M</span>';
+        if (roles.includes('vip'))       html += '<span class="badge badge-vip" title="VIP">V</span>';
+        if (roles.includes('og'))        html += '<span class="badge badge-og" title="OG">OG</span>';
+        if (roles.includes('subscriber'))html += '<span class="badge badge-sub" title="Subscriber">S</span>';
         return html;
     }
 
-    function addChatMessage(data) {
-        const container = document.getElementById('chat_container');
+    function addChatMessage(payload) {
+        var container = document.getElementById('chat_container');
+        var sender = payload.sender || {};
+        var displayName = sender.displayName || sender.username || 'Anonymous';
+        var color = getUserColor(displayName);
+        var badges = renderBadges(sender.roles);
+        var text = escapeHtml(payload.message || '');
 
-        // Extract sender info from the EventSub payload
-        const sender = data.sender || {};
-        const displayName = sender.displayName || sender.username || 'Anonymous';
-        const color = getUserColor(displayName);
-        const badges = renderBadges(sender.roles);
-        const text = escapeHtml(data.message || '');
-
-        const line = document.createElement('div');
+        var line = document.createElement('div');
         line.className = 'chat-line';
-        line.dataset.messageId = data.messageId || '';
+        line.dataset.messageId = payload.messageId || '';
         line.innerHTML =
             badges +
             '<span class="username" style="color:' + color + '">' + escapeHtml(displayName) + '</span>' +
@@ -92,37 +77,26 @@
 
         container.appendChild(line);
 
-        // Prune old messages
         while (container.children.length > MAX_MESSAGES) {
             container.removeChild(container.firstChild);
         }
-
-        // Scroll to bottom
         container.scrollTop = container.scrollHeight;
 
-        // Fade out after timeout
         if (config.fadeTimeout > 0) {
             setTimeout(function () {
                 line.classList.add('fading');
                 setTimeout(function () {
-                    if (line.parentNode) {
-                        line.parentNode.removeChild(line);
-                    }
+                    if (line.parentNode) line.parentNode.removeChild(line);
                 }, 1000);
             }, config.fadeTimeout * 1000);
         }
     }
 
-    function handleMessageDelete(data) {
-        const messageId = data.messageId;
-        if (!messageId) return;
-
-        const el = document.querySelector('[data-message-id="' + messageId + '"]');
+    function handleMessageDelete(payload) {
+        var el = payload.messageId ? document.querySelector('[data-message-id="' + payload.messageId + '"]') : null;
         if (el) {
             el.classList.add('fading');
-            setTimeout(function () {
-                if (el.parentNode) el.parentNode.removeChild(el);
-            }, 500);
+            setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500);
         }
     }
 
@@ -130,37 +104,36 @@
         document.getElementById('chat_container').innerHTML = '';
     }
 
-    // --- Resolve channel name to channel ID ---
+    // --- Resolve channel slug to channel UUID ---
 
     async function resolveChannelId(channelName) {
         if (!config.clientId || !config.accessToken) return null;
 
         try {
-            // Blaze API uses slug[] parameter to look up channels by name
-            const url = API_BASE + '/channels?slug[]=' + encodeURIComponent(channelName);
+            var url = API_BASE + '/channels?slug[]=' + encodeURIComponent(channelName);
             console.log('[BlazeChat] Resolving channel via:', url);
 
-            const response = await fetch(url, {
+            var response = await fetch(url, {
                 headers: {
                     'Authorization': 'Bearer ' + config.accessToken,
-                    'client-id': config.clientId,
+                    'Client-Id': config.clientId,
                     'Accept': 'application/json'
                 }
             });
 
-            console.log('[BlazeChat] Channel lookup response:', response.status);
+            console.log('[BlazeChat] Channel lookup status:', response.status);
 
             if (!response.ok) {
-                const errText = await response.text();
+                var errText = await response.text();
                 console.error('[BlazeChat] Channel lookup failed:', response.status, errText);
                 return null;
             }
 
-            const data = await response.json();
-            console.log('[BlazeChat] Channel lookup result:', JSON.stringify(data).substring(0, 300));
+            var data = await response.json();
+            console.log('[BlazeChat] Channel lookup result:', JSON.stringify(data).substring(0, 500));
 
-            // Response could be { channels: [...] } or just an array
-            const channels = data.channels || data;
+            // Try various response shapes
+            var channels = data.channels || data.data || data;
             if (Array.isArray(channels) && channels.length > 0) return channels[0].id;
             if (data && data.id) return data.id;
             return null;
@@ -170,37 +143,37 @@
         }
     }
 
-    // --- Socket.IO EventSub ---
+    // --- Socket.IO EventSub (matches working BlazeEventSub.js pattern) ---
 
     async function subscribeToEvent(type, channelId) {
         try {
-            const response = await fetch(API_BASE + '/events/subscriptions', {
+            console.log('[BlazeChat] Subscribing to', type, 'for channel', channelId);
+            var response = await fetch(API_BASE + '/events/subscriptions', {
                 method: 'POST',
                 headers: {
                     'Authorization': 'Bearer ' + config.accessToken,
-                    'client-id': config.clientId,
-                    'Content-Type': 'application/json'
+                    'Client-Id': config.clientId,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     type: type,
                     version: '1',
                     sessionId: sessionId,
-                    condition: {
-                        channelId: channelId
-                    }
+                    condition: { channelId: channelId }
                 })
             });
 
             if (!response.ok) {
-                const errBody = await response.text();
-                console.error('EventSub subscribe failed for ' + type + ':', response.status, errBody);
+                var errBody = await response.text();
+                console.error('[BlazeChat] Subscribe failed for', type, '(' + response.status + '):', errBody.substring(0, 200));
                 return false;
             }
 
-            console.log('Subscribed to ' + type);
+            console.log('[BlazeChat] Subscribed to', type);
             return true;
         } catch (err) {
-            console.error('EventSub subscribe error for ' + type + ':', err);
+            console.error('[BlazeChat] Subscribe error for', type, ':', err);
             return false;
         }
     }
@@ -211,28 +184,36 @@
             socket = null;
         }
 
+        sessionId = null;
         showStatus('Connecting to Blaze chat...', 0);
+        console.log('[BlazeChat] Connecting Socket.IO to', SOCKET_URL, 'path:', SOCKET_PATH);
 
+        // Match the working BlazeEventSub.js connection pattern exactly
         socket = io(SOCKET_URL, {
             path: SOCKET_PATH,
-            transports: ['websocket', 'polling'],
+            transports: ['websocket'],
+            upgrade: false,
+            auth: {
+                token: 'Bearer ' + config.accessToken
+            },
             reconnection: true,
-            reconnectionDelay: 2000,
-            reconnectionAttempts: 10
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 30000
         });
 
         socket.on('connect', function () {
-            console.log('Socket.IO connected');
+            console.log('[BlazeChat] Socket.IO connected, waiting for session_welcome...');
         });
 
         socket.on('disconnect', function (reason) {
-            console.log('Socket.IO disconnected:', reason);
-            showStatus('Disconnected from Blaze chat. Reconnecting...', 5000);
+            console.log('[BlazeChat] Socket.IO disconnected:', reason);
+            showStatus('Disconnected. Reconnecting...', 5000);
             sessionId = null;
         });
 
         socket.on('connect_error', function (err) {
-            console.error('Socket.IO connection error:', err.message);
+            console.error('[BlazeChat] Socket.IO connection error:', err.message);
             showStatus('Connection error: ' + err.message, 5000);
         });
 
@@ -240,26 +221,24 @@
         socket.on('eventsub', async function (data) {
             if (!data || !data.metadata) return;
 
-            const messageType = data.metadata.messageType;
+            var messageType = data.metadata.messageType;
 
             if (messageType === 'session_welcome') {
-                // Extract sessionId and subscribe to chat events
-                sessionId = data.payload && data.payload.session
-                    ? data.payload.session.id
-                    : (data.payload ? data.payload.sessionId : null);
+                // Match working code: payload.sessionId (not payload.session.id)
+                sessionId = data.payload ? data.payload.sessionId : null;
 
                 if (!sessionId) {
-                    console.error('No sessionId in welcome message:', data);
+                    console.error('[BlazeChat] No sessionId in welcome:', JSON.stringify(data));
                     showStatus('Failed to get session ID', 5000);
                     return;
                 }
 
-                console.log('Got sessionId:', sessionId);
+                console.log('[BlazeChat] Session established:', sessionId);
 
                 // Subscribe to chat events
-                const chatOk = await subscribeToEvent('channel.chat.message', config.channelId);
-                const deleteOk = await subscribeToEvent('channel.chat.message_delete', config.channelId);
-                const clearOk = await subscribeToEvent('channel.chat.clear', config.channelId);
+                var chatOk = await subscribeToEvent('channel.chat.message', config.channelId);
+                await subscribeToEvent('channel.chat.message_delete', config.channelId);
+                await subscribeToEvent('channel.chat.clear', config.channelId);
 
                 if (chatOk) {
                     showStatus('Connected to Blaze chat', 3000);
@@ -268,16 +247,14 @@
                 }
             }
             else if (messageType === 'notification') {
-                const subType = data.metadata.subscriptionType;
-                const payload = data.payload || {};
+                var subType = data.metadata.subscriptionType;
+                var payload = data.payload || {};
 
                 if (subType === 'channel.chat.message') {
                     addChatMessage(payload);
-                }
-                else if (subType === 'channel.chat.message_delete') {
+                } else if (subType === 'channel.chat.message_delete') {
                     handleMessageDelete(payload);
-                }
-                else if (subType === 'channel.chat.clear') {
+                } else if (subType === 'channel.chat.clear') {
                     handleChatClear();
                 }
             }
@@ -290,57 +267,59 @@
 
     if (blazeChatHost) {
         blazeChatHost.addEventListener('message', async function (event) {
-            const message = event.data;
-            console.log('[BlazeChat] Received message from C#:', JSON.stringify(message).substring(0, 200));
+            var message = event.data;
+            console.log('[BlazeChat] Received config from C#');
 
-            switch (message.type) {
-                case 'blazeConfig':
-                    config.clientId = message.payload.clientId || '';
-                    config.accessToken = message.payload.accessToken || '';
-                    config.fadeTimeout = message.payload.fadeTimeout || 0;
+            if (message.type !== 'blazeConfig') {
+                console.warn('[BlazeChat] Unknown message type:', message.type);
+                return;
+            }
 
-                    console.log('[BlazeChat] Config received - clientId:', config.clientId ? 'present' : 'MISSING',
-                        'token:', config.accessToken ? 'present' : 'MISSING');
+            config.clientId = message.payload.clientId || '';
+            config.accessToken = message.payload.accessToken || '';
+            config.fadeTimeout = message.payload.fadeTimeout || 0;
 
-                    var channelInput = message.payload.channel || '';
+            console.log('[BlazeChat] clientId:', config.clientId ? 'present' : 'MISSING',
+                'token:', config.accessToken ? 'present' : 'MISSING');
 
-                    // If it looks like a UUID, use it directly; otherwise resolve the name
-                    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(channelInput)) {
-                        config.channelId = channelInput;
-                    } else if (channelInput) {
-                        showStatus('Resolving channel: ' + channelInput + '...', 0);
-                        var resolved = await resolveChannelId(channelInput);
-                        if (resolved) {
-                            config.channelId = resolved;
-                        } else {
-                            showStatus('Could not find Blaze channel: ' + channelInput, 5000);
-                            return;
-                        }
-                    }
+            var channelInput = message.payload.channel || '';
 
-                    console.log('[BlazeChat] Channel resolved:', config.channelId || 'NONE');
+            // If it looks like a UUID, use directly; otherwise resolve slug to UUID
+            if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(channelInput)) {
+                config.channelId = channelInput;
+                console.log('[BlazeChat] Channel is UUID:', config.channelId);
+            } else if (channelInput) {
+                showStatus('Resolving channel: ' + channelInput + '...', 0);
+                console.log('[BlazeChat] Resolving slug:', channelInput);
+                var resolved = await resolveChannelId(channelInput);
+                if (resolved) {
+                    config.channelId = resolved;
+                    console.log('[BlazeChat] Resolved to:', config.channelId);
+                } else {
+                    showStatus('Could not find channel: ' + channelInput, 5000);
+                    console.error('[BlazeChat] Channel resolution failed for:', channelInput);
+                    return;
+                }
+            }
 
-                    if (config.channelId && config.accessToken) {
-                        console.log('[BlazeChat] Starting Socket.IO connection...');
-                        connectSocket();
-                    } else {
-                        console.error('[BlazeChat] Missing -', !config.channelId ? 'channelId' : '', !config.accessToken ? 'accessToken' : '');
-                        showStatus('Missing channel or credentials', 5000);
-                    }
-                    break;
-
-                default:
-                    console.warn('Unknown message type:', message.type);
+            if (config.channelId && config.accessToken) {
+                console.log('[BlazeChat] All ready, connecting Socket.IO...');
+                connectSocket();
+            } else {
+                console.error('[BlazeChat] Missing -',
+                    !config.channelId ? 'channelId' : '',
+                    !config.accessToken ? 'accessToken' : '');
+                showStatus('Missing channel or credentials', 5000);
             }
         });
 
-        // Notify the C# host that we're ready
+        // Notify C# host that we're ready to receive config
         blazeChatHost.postMessage({
             type: 'BlazeChatReady',
             protocolVersion: 1
         });
     } else {
-        console.warn('Blaze Chat host bridge is unavailable.');
-        showStatus('No host bridge - running standalone', 0);
+        console.warn('[BlazeChat] Host bridge unavailable (standalone mode)');
+        showStatus('No host bridge', 0);
     }
 })();
