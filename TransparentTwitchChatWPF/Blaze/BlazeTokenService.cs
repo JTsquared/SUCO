@@ -12,7 +12,7 @@ namespace TransparentTwitchChatWPF.Blaze;
 /// </summary>
 internal class BlazeTokenService
 {
-    private const string TokenProxyUrl = "https://blazegames.store/blaze-token/token";
+    private const string TokenProxyUrl = "https://blazegames.store/suco/token";
 
     private static readonly HttpClient HttpClient = new();
 
